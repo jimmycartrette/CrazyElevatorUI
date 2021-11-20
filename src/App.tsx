@@ -1,7 +1,7 @@
 import React, { FC } from 'react';
 import './App.css';
 
-enum ElevatorDirection { UP = 1, DOWN }
+// enum ElevatorDirection { UP = 1, DOWN }
 enum DoorsStatus { OPEN = 1, CLOSED }
 
 type ElevatorShaftState = {
@@ -26,8 +26,8 @@ const Floor = () => {
 }
 
 const ElevatorContainer: FC<ElevatorShaftState> = ({ floor }) => {
-  const [direction, setDirection] = React.useState(ElevatorDirection.UP);
-  setDirection(direction);
+  // const [direction, setDirection] = React.useState(ElevatorDirection.UP);
+  // setDirection(direction);
   return (<div className={"elevatorcontainer floor" + floor.toString()}>
     <Indicator></Indicator>
     <Elevator floor={floor}></Elevator>
