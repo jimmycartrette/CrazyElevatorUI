@@ -1,4 +1,4 @@
-import React, { FC, ReactElement } from 'react';
+import React, { FC } from 'react';
 import './App.css';
 
 enum ElevatorDirection { UP = 1, DOWN }
@@ -11,9 +11,9 @@ type ElevatorShaftState = {
 const ElevatorShaft = () => {
   const [elevatorFloor, setElevatorFloor] = React.useState(1);
   return (
-    <a className="elevatorshaft" onClick={() => elevatorFloor === 3 ? setElevatorFloor(1) : setElevatorFloor(elevatorFloor + 1)}>
+    <button className="elevatorshaft" onClick={() => elevatorFloor === 3 ? setElevatorFloor(1) : setElevatorFloor(elevatorFloor + 1)}>
       <ElevatorContainer floor={elevatorFloor} ></ElevatorContainer>
-    </a>
+    </button>
   );
 }
 
@@ -25,12 +25,10 @@ const Floor = () => {
   );
 }
 
-
-
 const ElevatorContainer: FC<ElevatorShaftState> = ({ floor }) => {
-  const [direction, setDirection] = React.useState(0);
-
-  return (<div className={"elevatorcontainer " + "floor" + floor.toString()}>
+  const [direction, setDirection] = React.useState(ElevatorDirection.UP);
+  setDirection(direction);
+  return (<div className={"elevatorcontainer floor" + floor.toString()}>
     <Indicator></Indicator>
     <Elevator floor={floor}></Elevator>
   </div>);
@@ -51,7 +49,7 @@ const Elevator: FC<ElevatorShaftState> = ({ floor }) => {
   const [doorsStatus, setDoorsStatus] = React.useState(DoorsStatus.CLOSED);
   return (
 
-    <a className="elevator " onClick={() => { setDoorsStatus(doorsStatus === DoorsStatus.CLOSED ? DoorsStatus.OPEN : DoorsStatus.CLOSED); }} >
+    <button className="elevator " onClick={() => { setDoorsStatus(doorsStatus === DoorsStatus.CLOSED ? DoorsStatus.OPEN : DoorsStatus.CLOSED); }} >
       <span className="doors">
         <div className="insideelevator">
 
@@ -69,7 +67,7 @@ const Elevator: FC<ElevatorShaftState> = ({ floor }) => {
         <div className={"door left metal linear " + (doorsStatus === DoorsStatus.OPEN ? 'dooropenleft' : '')}></div>
         <div className={"door right metal linear " + (doorsStatus === DoorsStatus.OPEN ? 'dooropenright' : '')}></div>
       </span>
-    </a >
+    </button>
 
 
   );
