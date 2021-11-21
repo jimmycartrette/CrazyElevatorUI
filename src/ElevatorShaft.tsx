@@ -38,7 +38,7 @@ const ElevatorContainer: FC<ElevatorState> = ({ floor }) => {
     // setDirection(direction);
     return (<div className={"elevatorcontainer floor" + floor.toString()}>
 
-        {/* <Elevator floor={floor}></Elevator> */}
+        <Elevator floor={floor}></Elevator>
     </div>);
 }
 
