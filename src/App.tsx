@@ -21,14 +21,16 @@ export interface elevatorState {
   fromFloor?: number,
   toFloor?: number,
   progress?: number
-  atFloor?: number
+  atFloor?: number,
+  key: number
 }
 
 export interface elevatorDoorState {
   elevatorShaftNumber: number,
   floor: number,
   open: boolean,
-  onClick?: any
+  onClick?: any,
+  key: number
 }
 export interface state {
   elevatorState: Array<elevatorState>,
@@ -40,35 +42,79 @@ let initialState: state = {
     return {
       elevatorNumber: i + 1,
       elevatorStatus: ElevatorStatus.ATFLOOR,
-      atFloor: 1
+      atFloor: 1,
+      key: generateNewKey()
     }
   }),
   elevatorDoorState: Array.from({ length: (numberOfElevatorDoors) }, (_x, i) => {
     return {
       elevatorShaftNumber: i % globals.NUMBER_OF_ELEVATORS + 1,
       floor: globals.NUMBER_OF_FLOORS - Math.floor(i / globals.NUMBER_OF_ELEVATORS),
-      open: false
+      open: false,
+      key: generateNewKey()
     }
   }),
 };
 
 const callElevator = (state: state, callingFloor: number, callingElevatorShaft: number, stateUpdateFunction: React.Dispatch<React.SetStateAction<state>>) => {
+
   let newState = Object.assign({}, state);
+  let elevator = newState.elevatorState.find(es => es.elevatorNumber === callingElevatorShaft);
+  if (callingFloor === elevator?.atFloor) {
+    return;
+  }
   let otherElevatorsInShaft = newState.elevatorDoorState.filter(ds => ds.elevatorShaftNumber === callingElevatorShaft && ds.floor !== callingFloor);
   otherElevatorsInShaft.forEach(a => a.open = false);
   let callingdoor = newState.elevatorDoorState.find(ds => ds.floor === callingFloor
     && ds.elevatorShaftNumber === callingElevatorShaft);
-  if (callingdoor) { callingdoor.open = true; }
-  var elevator = newState.elevatorState.find(es => es.elevatorNumber === callingElevatorShaft);
-  if (elevator) {
-    elevator.atFloor = callingFloor;
-    elevator.elevatorStatus = ElevatorStatus.ATFLOOR;
+
+  if (elevator && elevator.elevatorStatus === ElevatorStatus.ATFLOOR) {
+
+    let floorDifference = Math.abs(callingFloor - (elevator?.atFloor ?? 1));
+    let moveDelay = floorDifference * 700;
+
+    elevator.fromFloor = elevator.atFloor;
+    elevator.atFloor = undefined;
+    elevator.elevatorStatus = ElevatorStatus.MOVING;
+    elevator.toFloor = callingFloor;
+    elevator.direction = callingFloor > (elevator?.atFloor ?? 1) ? ElevatorDirection.UP : ElevatorDirection.DOWN;
+    elevator.key = generateNewKey();
+    stateUpdateFunction(newState);
+    setTimeout(() => {
+      if (elevator) {
+        elevator.atFloor = elevator.toFloor;
+        elevator.direction = undefined;
+        elevator.fromFloor = undefined;
+        elevator.toFloor = undefined;
+        elevator.elevatorStatus = ElevatorStatus.ATFLOOR;
+        elevator.key = generateNewKey();
+
+        if (callingdoor) {
+          callingdoor.open = true;
+          callingdoor.key = generateNewKey();
+          setTimeout(() => {
+
+            if (callingdoor) {
+              callingdoor.open = false;
+              callingdoor.key = generateNewKey();
+              stateUpdateFunction(newState);
+            }
+
+
+          }, moveDelay);
+        }
+        stateUpdateFunction(newState);
+      }
+    }, moveDelay);
   }
-  stateUpdateFunction(newState);
+
+
+
 }
 
 const BaseGrid = () => {
   const [state, setState] = useState(initialState);
+  console.log('generating basegrid');
   const gridSetup: CSS.Properties = {
     gridTemplateColumns: '2fr repeat(' + (globals.NUMBER_OF_ELEVATORS - 1).toString() + ', 2fr 1fr) 2fr 2fr',
     gridTemplateRows: '1fr repeat(' + globals.NUMBER_OF_FLOORS + ', 2fr) 1fr'
@@ -84,7 +130,8 @@ const BaseGrid = () => {
         toFloor={state.elevatorState[i].toFloor}
         atFloor={state.elevatorState[i].atFloor}
         progress={state.elevatorState[i].progress}
-        key={"shaft" + i}></ElevatorShaft>)}
+        key={state.elevatorState[i].key}
+      ></ElevatorShaft>)}
       {Array.from({ length: globals.NUMBER_OF_ELEVATORS * globals.NUMBER_OF_FLOORS },
         (_, i) => {
           return <ElevatorDoors
@@ -92,7 +139,8 @@ const BaseGrid = () => {
             elevatorShaftNumber={state.elevatorDoorState[i].elevatorShaftNumber}
             floor={state.elevatorDoorState[i].floor}
             open={state.elevatorDoorState[i].open}
-            key={"doors" + i}></ElevatorDoors>
+            key={state.elevatorDoorState[i].key}
+          ></ElevatorDoors>
         })}
       {Array.from({ length: globals.NUMBER_OF_ELEVATORS },
         (_, i) => {
@@ -104,7 +152,8 @@ const BaseGrid = () => {
             toFloor={state.elevatorState[i].toFloor}
             atFloor={state.elevatorState[i].atFloor}
             progress={state.elevatorState[i].progress}
-            key={"elevator" + i}></Elevator>
+            key={state.elevatorState[i].key}
+          ></Elevator>
         })}
     </div>
   );
@@ -119,3 +168,7 @@ const App = () => {
 }
 
 export default App;
+function generateNewKey(): number {
+  return Math.floor(Math.random() * 20000);
+}
+
