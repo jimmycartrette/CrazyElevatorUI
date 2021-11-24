@@ -12,8 +12,10 @@ export const Elevator = (state: elevatorState) => {
         if (runOnce === 1) { }
         console.log('animate handles');
         console.log(grid);
+        // eslint-disable-next-line 
         animateHandles = (window as any).animateCSSGrid.wrapGrid(grid,
             { easing: 'backOut', stagger: 10, duration: 5000 });
+        // eslint-disable-next-line 
         runOnce = 1;
     }
         , []);

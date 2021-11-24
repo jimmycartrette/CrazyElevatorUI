@@ -1,14 +1,8 @@
-import { FC, useState } from "react";
 import './ElevatorDoors.css';
 import { globals } from './globals';
 import CSS from 'csstype';
-import { useDispatch, useSelector } from 'react-redux';
 import { elevatorDoorState } from "./App";
 
-type ElevatorDoors = {
-    elevatorShaftNumber: number,
-    floor: number
-}
 
 const Indicator = () => {
     return (
