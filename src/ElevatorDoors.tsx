@@ -1,11 +1,11 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import './ElevatorDoors.css';
-import { DoorsStatus } from "./globals";
 import { globals } from './globals';
 import CSS from 'csstype';
-import React from "react";
+import { useDispatch, useSelector } from 'react-redux';
+import { elevatorDoorState } from "./App";
 
-type ElevatorDoorsStatus = {
+type ElevatorDoors = {
     elevatorShaftNumber: number,
     floor: number
 }
@@ -14,30 +14,34 @@ const Indicator = () => {
     return (
 
         <div className="topindicator metal">
-            <div className="indicator upindicator"></div>
-            <div className="indicator downindicator"></div>
+            <div className="indicator upindicator upindicatoron"></div>
+            <div className="indicator downindicator downindicatoron"></div>
         </div>
     );
 
 }
 
-const ElevatorDoors: FC<ElevatorDoorsStatus> = ({ elevatorShaftNumber, floor }) => {
+const ElevatorDoors = (state: elevatorDoorState) => {
     const gridPlacement: CSS.Properties = {
-        gridArea: (globals.NUMBER_OF_FLOORS - floor + 2).toString() + '/'
-            + (elevatorShaftNumber * 2).toString() +
-            '/' + (globals.NUMBER_OF_FLOORS - floor + 2).toString()
-            + '/' + (elevatorShaftNumber * 2).toString(),
+        gridArea: (globals.NUMBER_OF_FLOORS - state.floor + 2).toString() + '/'
+            + (state.elevatorShaftNumber * 2).toString() +
+            '/' + (globals.NUMBER_OF_FLOORS - state.floor + 2).toString()
+            + '/' + (state.elevatorShaftNumber * 2).toString(),
         zIndex: 100
     }
-    const [doorStatus, setDoorStatus] = React.useState(DoorsStatus.CLOSED);
+
+    // .find(d => d.floor === 1 && d.elevatorShaftNumber === 1));
+
     return (
-        <div style={gridPlacement} className="doorsholder">
+        <div style={gridPlacement} className="doorsholder" onClick={() => {
+            state.onClick()
+        }}>
             <Indicator></Indicator>
-            <div className="doors" onClick={() => { setDoorStatus(doorStatus === DoorsStatus.OPEN ? DoorsStatus.CLOSED : DoorsStatus.OPEN) }}>
-                <div className={"door left metal linear " + (doorStatus === DoorsStatus.OPEN ? 'dooropenleft' : '')}></div>
-                <div className={"door right metal linear " + (doorStatus === DoorsStatus.OPEN ? 'dooropenright' : '')}></div>
+            <div className="doors">
+                <div className={"door left metal linear " + (state.open ? 'dooropenleft' : '')}></div>
+                <div className={"door right metal linear " + (state.open ? 'dooropenright' : '')}></div>
             </div>
-        </div>
+        </div >
     );
 
 }

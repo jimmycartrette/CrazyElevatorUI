@@ -2,14 +2,14 @@
     /* margin:auto; */
     display: flex;
     justify-content: space-evenly;
-    height: 100%;
+    
     background-color: #d5ddee;
     z-index:20;
   }
   .floor:nth-child(odd) {
     background-color: #9c9c9c;
   }
-  .floor3{
+  /* .floor3{
     margin-top:0;
   }
   .floor2{
@@ -18,4 +18,4 @@
   .floor1{
     margin-top:70vh;
   }
-  
+   */
