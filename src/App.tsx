@@ -78,7 +78,6 @@ const callElevator = (state: state, callingFloor: number, callingElevatorShaft: 
     elevator.elevatorStatus = ElevatorStatus.MOVING;
     elevator.toFloor = callingFloor;
     elevator.direction = callingFloor > (elevator?.atFloor ?? 1) ? ElevatorDirection.UP : ElevatorDirection.DOWN;
-    elevator.key = generateNewKey();
     stateUpdateFunction(newState);
     setTimeout(() => {
       if (elevator) {
@@ -87,23 +86,21 @@ const callElevator = (state: state, callingFloor: number, callingElevatorShaft: 
         elevator.fromFloor = undefined;
         elevator.toFloor = undefined;
         elevator.elevatorStatus = ElevatorStatus.ATFLOOR;
-        elevator.key = generateNewKey();
 
         if (callingdoor) {
           callingdoor.open = true;
-          callingdoor.key = generateNewKey();
           setTimeout(() => {
 
             if (callingdoor) {
               callingdoor.open = false;
-              callingdoor.key = generateNewKey();
-              stateUpdateFunction(newState);
+              // let newState = Object.assign({}, state);
+              stateUpdateFunction(Object.assign({}, state));
             }
 
 
           }, moveDelay);
         }
-        stateUpdateFunction(newState);
+        stateUpdateFunction(Object.assign({}, state));
       }
     }, moveDelay);
   }
