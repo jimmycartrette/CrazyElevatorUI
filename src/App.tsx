@@ -1,14 +1,15 @@
 import CSS from 'csstype';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './App.css';
 import { Elevator } from './Elevator';
 import ElevatorDoors from './ElevatorDoors';
 import ElevatorShaft from './ElevatorShaft';
 import Floor from './Floor';
 import { globals } from './globals';
-
-
-
+import { WebPubSubServiceClient, AzureKeyCredential } from '@azure/web-pubsub';
+import PowerButton from './PowerButton';
+import { wrapGrid } from 'animate-css-grid';
+import React from 'react';
 
 // enum ElevatorDirection { UP = 1, DOWN }
 export enum ElevatorDirection { UP = 1, DOWN };
@@ -104,20 +105,53 @@ const callElevator = (state: state, callingFloor: number, callingElevatorShaft: 
       }
     }, moveDelay);
   }
-
-
-
 }
-
+export interface webPubSubConnection {
+  connectionString: string | null,
+  hubName: string
+}
+let initialWPSConnection: webPubSubConnection = {
+  connectionString: null,
+  hubName: "elevator"
+}
 const BaseGrid = () => {
+  const gridRef = React.useRef(null);
+  useEffect(() => {
+    if (gridRef.current) {
+
+      wrapGrid(gridRef.current, { easing: 'easeInOut', duration: 2000 });
+    }
+
+  }
+    , []);
+
   const [state, setState] = useState(initialState);
+  const [wpsConnection, setWpsConnection] = useState(initialWPSConnection);
+  useEffect(() => {
+    fetch("https://crazyelevatorwebpubsubtokengenerator.azurewebsites.net/api/elevatorWebPubSubTokenGenerator?id=jimmy")
+      .then(res => res.json())
+      .then(
+        (result) => {
+          setWpsConnection(preconn => {
+            return { ...preconn, connectionString: result.url }
+          });
+          const serviceClient = new WebSocket(result.url);
+        },
+        // Note: it's important to handle errors here
+        // instead of a catch() block so that we don't swallow
+        // exceptions from actual bugs in components.
+        (error) => {
+          console.log("something broke");
+        }
+      )
+  }, [])
   console.log('generating basegrid');
   const gridSetup: CSS.Properties = {
     gridTemplateColumns: '2fr repeat(' + (globals.NUMBER_OF_ELEVATORS - 1).toString() + ', 2fr 1fr) 2fr 2fr',
     gridTemplateRows: '1fr repeat(' + globals.NUMBER_OF_FLOORS + ', 2fr) 1fr'
   };
   return (
-    <div className="baseGrid" style={gridSetup}>
+    <div className="baseGrid" style={gridSetup} ref={gridRef}>
       {Array.from({ length: globals.NUMBER_OF_FLOORS }, (_, i) => <Floor floor={globals.NUMBER_OF_FLOORS - i} key={"floor" + i}></Floor>)}
       {Array.from({ length: state.elevatorState.length }, (_, i) => <ElevatorShaft
         elevatorNumber={state.elevatorState[i].elevatorNumber}
@@ -160,7 +194,7 @@ const BaseGrid = () => {
 
 const App = () => {
   return (
-    <BaseGrid></BaseGrid>
+    <><PowerButton></PowerButton><BaseGrid></BaseGrid></>
   );
 }
 
