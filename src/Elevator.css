@@ -2,12 +2,10 @@
     /* margin:auto; */
     height:100%;
     width:100%;
-    transition: margin 3700ms;
+    /* transition: margin 3700ms; */
     z-index:1;
-    /* display: flex; */
     background-color:rgb(112, 112, 112);
-    transition: grid-template-rows grid-template-columns 5000ms;
-    /* transform: scale(.4) translateY(-70%) translateX(-75%); */
+    
   }
 
 

@@ -1,10 +1,8 @@
 import CSS from 'csstype';
-import { useEffect } from 'react';
-import { elevatorState, ElevatorStatus } from "./App";
+import { elevatorState } from "./App";
 import './Elevator.css';
 import { globals } from './globals';
 
-import React from 'react';
 
 export const Elevator = (state: elevatorState) => {
     // let grid: HTMLDivElement | null;
@@ -12,12 +10,11 @@ export const Elevator = (state: elevatorState) => {
     // let runOnce = 0;
 
     const gridPlacement: CSS.Properties = {
-        gridRow: ((globals.NUMBER_OF_FLOORS - ((state?.atFloor) ?? state?.toFloor ?? 1) + 2)).toString() + '/' + ((globals.NUMBER_OF_FLOORS - ((state?.atFloor ?? state?.toFloor) ?? 1) + 2)).toString(),
+        gridRow: ((globals.NUMBER_OF_FLOORS - ((state?.atFloor) ?? 1) + 2)).toString() + '/' + ((globals.NUMBER_OF_FLOORS - ((state?.atFloor) ?? 1) + 2)).toString(),
         gridColumn: (state.elevatorNumber * 2).toString()
             + '/' + (state.elevatorNumber * 2).toString(),
         zIndex: 20,
-        justifySelf: "center",
-        display: state.elevatorStatus === ElevatorStatus.MOVING ? 'none' : 'block'
+        justifySelf: "center"
     }
 
     return (
