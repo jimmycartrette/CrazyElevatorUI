@@ -96,6 +96,7 @@ function moveFloor(stateUpdateFunction: React.Dispatch<React.SetStateAction<stat
         setTimeout(() => {
           if (callingdoor) {
             callingdoor.open = false;
+            console.log(newState);
             stateUpdateFunction(Object.assign({}, newState));
           }
         }, MOVE_DELAY);
@@ -148,7 +149,8 @@ const BaseGrid = () => {
       .then(
         (result) => {
 
-          const serviceClient = new WebSocket(result.url);
+          const serviceClient = new WebSocket(result.url, 'json.webpubsub.azure.v1');
+          addMessageProcessor(serviceClient, setState);
           setWpsConnection(preconn => {
             return { ...preconn, connectionString: result.url, connection: serviceClient }
           });
@@ -215,6 +217,19 @@ const App = () => {
 
 export default App;
 
+
+function addMessageProcessor(serviceClient: WebSocket, setState: React.Dispatch<React.SetStateAction<state>>) {
+  serviceClient.onmessage = evt => {
+    var data = JSON.parse(evt.data);
+    switch (data.type) {
+      case "message":
+        console.log(data.data as state);
+        setState(data.data as state);
+        break;
+    }
+
+  };
+}
 
 function generateNewKey(): number {
   return Math.floor(Math.random() * 20000);
