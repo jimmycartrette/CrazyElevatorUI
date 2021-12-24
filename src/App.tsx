@@ -13,7 +13,7 @@ import React from 'react';
 // enum ElevatorDirection { UP = 1, DOWN }
 export enum ElevatorDirection { UP = 1, DOWN };
 export enum ElevatorStatus { MOVING = 1, ATFLOOR };
-export const MOVE_DELAY = 700;
+export const MOVE_DELAY = 5000;
 
 export interface elevatorState {
   elevatorNumber: number,
