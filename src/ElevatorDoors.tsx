@@ -30,11 +30,13 @@ const ElevatorDoors = (state: elevatorDoorState) => {
         <div style={gridPlacement} className="doorsholder" onClick={() => {
             state.onClick()
         }}>
-            <Indicator></Indicator>
-            <div className="doors">
-                <div className={"door left metal linear " + (state.open ? 'dooropenleft' : '')}></div>
-                <div className={"door right metal linear " + (state.open ? 'dooropenright' : '')}></div>
-            </div>
+            <span>
+                <Indicator></Indicator>
+                <div className="doors">
+                    <div className={"door left metal linear " + (state.open ? 'dooropenleft' : '')}></div>
+                    <div className={"door right metal linear " + (state.open ? 'dooropenright' : '')}></div>
+                </div>
+            </span>
         </div >
     );
 

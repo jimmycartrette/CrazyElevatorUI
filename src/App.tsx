@@ -13,7 +13,7 @@ import React from 'react';
 // enum ElevatorDirection { UP = 1, DOWN }
 export enum ElevatorDirection { UP = 1, DOWN };
 export enum ElevatorStatus { MOVING = 1, ATFLOOR };
-export const MOVE_DELAY = 5000;
+export const MOVE_DELAY = 4000;
 
 export interface elevatorState {
   elevatorNumber: number,
@@ -96,7 +96,6 @@ function moveFloor(stateUpdateFunction: React.Dispatch<React.SetStateAction<stat
         setTimeout(() => {
           if (callingdoor) {
             callingdoor.open = false;
-            console.log(newState);
             stateUpdateFunction(Object.assign({}, newState));
           }
         }, MOVE_DELAY);
@@ -223,8 +222,26 @@ function addMessageProcessor(serviceClient: WebSocket, setState: React.Dispatch<
     var data = JSON.parse(evt.data);
     switch (data.type) {
       case "message":
-        console.log(data.data as state);
-        setState(data.data as state);
+        setState(existing => {
+
+          if (data.data["elevatorUpdate"]) {
+            let newState = Object.assign({}, existing);
+            let elevator = newState.elevatorState.find(es => es.elevatorNumber === parseInt(data.data["elevatorUpdate"].id)) as elevatorState;
+            elevator.atFloor = data.data["elevatorUpdate"].atFloor;
+            elevator.elevatorStatus = data.data["elevatorUpdate"].elevator_status;
+            if (data.data["elevatorUpdate"]["primary_elevator_queue"]) { console.warn("Elevator " + elevator.elevatorNumber + " at " + elevator.atFloor + (data.data["elevatorUpdate"]["primary_elevator_queue"]["toFloor"] ? " going to " + data.data["elevatorUpdate"]["primary_elevator_queue"]["toFloor"] : "") + (data.data["elevatorUpdate"]["secondary_elevator_queue"]["toFloor"] ? " then going to " + data.data["elevatorUpdate"]["secondary_elevator_queue"]["toFloor"] : "")); }
+
+            data.data["doorsUpdate"].forEach((door: elevatorDoorState) => {
+              let thisdoor = newState.elevatorDoorState.find(ed => ed.elevatorShaftNumber === door.elevatorShaftNumber && ed.floor === door.floor) as elevatorDoorState;
+              thisdoor.open = door.open;
+            });
+
+            return newState;
+          } else {
+            return data.data as state;
+          }
+        }
+        );
         break;
     }
 
