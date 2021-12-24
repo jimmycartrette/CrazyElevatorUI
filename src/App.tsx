@@ -11,7 +11,7 @@ import { wrapGrid } from 'animate-css-grid';
 import React from 'react';
 
 // enum ElevatorDirection { UP = 1, DOWN }
-export enum ElevatorDirection { UP = 1, DOWN };
+export enum ElevatorDirection { UP = 1, DOWN, NONE };
 export enum ElevatorStatus { MOVING = 1, ATFLOOR };
 export const MOVE_DELAY = 4000;
 
@@ -30,6 +30,8 @@ export interface elevatorDoorState {
   elevatorShaftNumber: number,
   floor: number,
   open: boolean,
+  elevatorAtFloor: number,
+  elevatorDirection: ElevatorDirection,
   onClick?: any,
   key: number
 }
@@ -51,6 +53,8 @@ let initialState: state = {
     return {
       elevatorShaftNumber: i % globals.NUMBER_OF_ELEVATORS + 1,
       floor: globals.NUMBER_OF_FLOORS - Math.floor(i / globals.NUMBER_OF_ELEVATORS),
+      elevatorAtFloor: 1,
+      elevatorDirection: ElevatorDirection.NONE,
       open: false,
       key: generateNewKey()
     }
@@ -186,8 +190,7 @@ const BaseGrid = () => {
             elevatorShaftNumber={state.elevatorDoorState[i].elevatorShaftNumber}
             floor={state.elevatorDoorState[i].floor}
             open={state.elevatorDoorState[i].open}
-            key={state.elevatorDoorState[i].key}
-          ></ElevatorDoors>
+            key={state.elevatorDoorState[i].key} elevatorAtFloor={state.elevatorDoorState[i].elevatorAtFloor} elevatorDirection={state.elevatorDoorState[i].elevatorDirection}></ElevatorDoors>
         })}
       {Array.from({ length: globals.NUMBER_OF_ELEVATORS },
         (_, i) => {
@@ -234,6 +237,9 @@ function addMessageProcessor(serviceClient: WebSocket, setState: React.Dispatch<
             data.data["doorsUpdate"].forEach((door: elevatorDoorState) => {
               let thisdoor = newState.elevatorDoorState.find(ed => ed.elevatorShaftNumber === door.elevatorShaftNumber && ed.floor === door.floor) as elevatorDoorState;
               thisdoor.open = door.open;
+              thisdoor.elevatorDirection = door.elevatorDirection;
+              thisdoor.elevatorAtFloor = door.elevatorAtFloor;
+
             });
 
             return newState;

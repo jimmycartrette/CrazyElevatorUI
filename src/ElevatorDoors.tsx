@@ -1,16 +1,21 @@
 import './ElevatorDoors.css';
 import { globals } from './globals';
 import CSS from 'csstype';
-import { elevatorDoorState } from "./App";
+import { ElevatorDirection, elevatorDoorState } from "./App";
 
 
-const Indicator = () => {
+type Props = {
+    elevatorDirection: ElevatorDirection;
+    elevatorAtFloor: number;
+}
+const Indicator: React.FC<Props> = ({ elevatorDirection, elevatorAtFloor }) => {
     return (
 
         <div className="topindicator metal">
-            <div className="indicator upindicator upindicatoron"></div>
-            <div className="indicator downindicator downindicatoron"></div>
-        </div>
+            <div className={"indicator upindicator " + (elevatorDirection === ElevatorDirection.UP ? 'upindicatoron' : '')}></div>
+            <div className={"indicator downindicator " + (elevatorDirection === ElevatorDirection.DOWN ? 'downindicatoron' : '')}></div>
+            <span className="textindicator">{elevatorAtFloor}</span>
+        </div >
     );
 
 }
@@ -31,7 +36,7 @@ const ElevatorDoors = (state: elevatorDoorState) => {
             state.onClick()
         }}>
             <span>
-                <Indicator></Indicator>
+                <Indicator elevatorDirection={state.elevatorDirection} elevatorAtFloor={state.elevatorAtFloor} ></Indicator>
                 <div className="doors">
                     <div className={"door left metal linear " + (state.open ? 'dooropenleft' : '')}></div>
                     <div className={"door right metal linear " + (state.open ? 'dooropenright' : '')}></div>
