@@ -10,7 +10,7 @@ const togglePower = (action: string, setPowerState: React.Dispatch<React.SetStat
     enabled: boolean;
 }>>) => {
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", "https://crazyelevatorcontroller.azurewebsites.net/api/elevatorControllerTimerToggle?action=" + action, true);
+    xhr.open("GET", "https://crazyelevatorrunner.azurewebsites.net/api/elevatorControllerTimerToggle?action=" + action, true);
     xhr.send();
     setPowerState({ enabled: action === 'enable' ? true : false });
 };
@@ -39,7 +39,7 @@ const PowerButton = () => {
             }
         });
 
-        xhr.open("GET", "https://crazyelevatorcontroller.azurewebsites.net/api/elevatorControllerTimerToggle?action=status", true);
+        xhr.open("GET", "https://crazyelevatorrunner.azurewebsites.net/api/elevatorControllerTimerToggle?action=status", true);
         xhr.send();
     }, []);
     return (

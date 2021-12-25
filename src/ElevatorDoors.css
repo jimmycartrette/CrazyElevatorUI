@@ -18,10 +18,11 @@
   
 }
 .textindicator{
-  color: #48db70;
+  color: #f53030;
   font-weight: 800;
-  font-size: x-small;
+  font-size: xx-small;
   background-color:black;
+  height:11px;
 }
 .upindicatoron{
   border-bottom: 9px solid #48db70;
