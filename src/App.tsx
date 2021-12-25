@@ -6,7 +6,6 @@ import ElevatorDoors from './ElevatorDoors';
 import ElevatorShaft from './ElevatorShaft';
 import Floor from './Floor';
 import { globals } from './globals';
-import PowerButton from './PowerButton';
 import { wrapGrid } from 'animate-css-grid';
 import React from 'react';
 
@@ -213,7 +212,7 @@ const BaseGrid = () => {
 
 const App = () => {
   return (
-    <><PowerButton></PowerButton><BaseGrid></BaseGrid></>
+    <><BaseGrid></BaseGrid></>
   );
 }
 
