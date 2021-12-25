@@ -11,7 +11,7 @@ type Props = {
 const Indicator: React.FC<Props> = ({ elevatorDirection, elevatorAtFloor }) => {
     return (
 
-        <div className="topindicator metal">
+        <div className="topindicator">
             <div className={"indicator upindicator " + (elevatorDirection === ElevatorDirection.UP ? 'upindicatoron' : '')}></div>
             <div className={"indicator downindicator " + (elevatorDirection === ElevatorDirection.DOWN ? 'downindicatoron' : '')}></div>
             <span className="textindicator">{elevatorAtFloor}</span>
