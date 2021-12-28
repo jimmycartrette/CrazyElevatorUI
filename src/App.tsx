@@ -8,58 +8,31 @@ import Floor from './Floor';
 import { globals } from './globals';
 import { wrapGrid } from 'animate-css-grid';
 import React from 'react';
+import { addMessageProcessor } from './addMessageProcessor';
+import { state, ElevatorStatus, ElevatorDirection, elevatorDoorState, elevatorState, MOVE_DELAY } from './ElevatorDirection';
 
-// enum ElevatorDirection { UP = 1, DOWN }
-export enum ElevatorDirection { UP = 1, DOWN, NONE };
-export enum ElevatorStatus { MOVING = 1, ATFLOOR };
-export const MOVE_DELAY = 4000;
-
-export interface elevatorState {
-  elevatorNumber: number,
-  direction?: ElevatorDirection,
-  elevatorStatus: ElevatorStatus,
-  fromFloor?: number,
-  toFloor?: number,
-  progress?: number,
-  atFloor?: number,
-  key: number
-}
-
-export interface elevatorDoorState {
-  elevatorShaftNumber: number,
-  floor: number,
-  open: boolean,
-  elevatorAtFloor: number,
-  elevatorDirection: ElevatorDirection,
-  onClick?: any,
-  key: number
-}
-export interface state {
-  elevatorState: Array<elevatorState>,
-  elevatorDoorState: Array<elevatorDoorState>,
-}
 let numberOfElevatorDoors = globals.NUMBER_OF_ELEVATORS * globals.NUMBER_OF_FLOORS;
 let initialState: state = {
   elevatorState: Array.from({ length: globals.NUMBER_OF_ELEVATORS }, (_x, i) => {
     return {
       elevatorNumber: i + 1,
       elevatorStatus: ElevatorStatus.ATFLOOR,
-      atFloor: 1,
-      key: generateNewKey()
+      atFloor: 1
     }
   }),
   elevatorDoorState: Array.from({ length: (numberOfElevatorDoors) }, (_x, i) => {
     return {
-      elevatorShaftNumber: i % globals.NUMBER_OF_ELEVATORS + 1,
-      floor: globals.NUMBER_OF_FLOORS - Math.floor(i / globals.NUMBER_OF_ELEVATORS),
+      // elevatorShaftNumber: i % globals.NUMBER_OF_ELEVATORS + 1,
+      elevatorShaftNumber: Math.floor(i / globals.NUMBER_OF_FLOORS) + 1,
+      // floor: globals.NUMBER_OF_FLOORS - Math.floor(i / globals.NUMBER_OF_ELEVATORS),
+      floor: i % globals.NUMBER_OF_FLOORS + 1,
       elevatorAtFloor: 1,
       elevatorDirection: ElevatorDirection.NONE,
-      open: false,
-      key: generateNewKey()
+      open: false
     }
   }),
 };
-
+console.log(initialState.elevatorDoorState);
 const callElevator = (state: state, callingFloor: number, callingElevatorShaft: number, stateUpdateFunction: React.Dispatch<React.SetStateAction<state>>) => {
 
   let newState = Object.assign({}, state);
@@ -164,7 +137,19 @@ const BaseGrid = () => {
           console.log("something broke");
         }
       )
-  }, [])
+  }, []);
+  useEffect(() => {
+    fetch("https://crazyelevatorcurrentstate.azurewebsites.net/api/GoCurrentElevatorState")
+      .then(res => res.json())
+      .then(
+        (result) => {
+          setState(result);
+        },
+        (error) => {
+          console.log("something broke");
+        }
+      )
+  }, []);
   const gridSetup: CSS.Properties = {
     gridTemplateColumns: '2fr repeat(' + (globals.NUMBER_OF_ELEVATORS - 1).toString() + ', 2fr 1fr) 2fr 2fr',
     gridTemplateRows: '1fr repeat(' + globals.NUMBER_OF_FLOORS + ', 2fr) 1fr'
@@ -180,7 +165,7 @@ const BaseGrid = () => {
         toFloor={state.elevatorState[i].toFloor}
         atFloor={state.elevatorState[i].atFloor}
         progress={state.elevatorState[i].progress}
-        key={state.elevatorState[i].key}
+        key={300 + i}
       ></ElevatorShaft>)}
       {Array.from({ length: globals.NUMBER_OF_ELEVATORS * globals.NUMBER_OF_FLOORS },
         (_, i) => {
@@ -189,7 +174,9 @@ const BaseGrid = () => {
             elevatorShaftNumber={state.elevatorDoorState[i].elevatorShaftNumber}
             floor={state.elevatorDoorState[i].floor}
             open={state.elevatorDoorState[i].open}
-            key={state.elevatorDoorState[i].key} elevatorAtFloor={state.elevatorDoorState[i].elevatorAtFloor} elevatorDirection={state.elevatorDoorState[i].elevatorDirection}></ElevatorDoors>
+            key={100 + i}
+            elevatorAtFloor={state.elevatorDoorState[i].elevatorAtFloor}
+            elevatorDirection={state.elevatorDoorState[i].elevatorDirection}></ElevatorDoors>
         })}
       {Array.from({ length: globals.NUMBER_OF_ELEVATORS },
         (_, i) => {
@@ -201,7 +188,7 @@ const BaseGrid = () => {
             toFloor={state.elevatorState[i].toFloor}
             atFloor={state.elevatorState[i].atFloor}
             progress={state.elevatorState[i].progress}
-            key={state.elevatorState[i].key}
+            key={200 + i}
           ></Elevator>
         })}
     </div>
@@ -217,43 +204,3 @@ const App = () => {
 }
 
 export default App;
-
-
-function addMessageProcessor(serviceClient: WebSocket, setState: React.Dispatch<React.SetStateAction<state>>) {
-  serviceClient.onmessage = evt => {
-    var data = JSON.parse(evt.data);
-    switch (data.type) {
-      case "message":
-        setState(existing => {
-
-          if (data.data["elevatorUpdate"]) {
-            let newState = Object.assign({}, existing);
-            let elevator = newState.elevatorState.find(es => es.elevatorNumber === parseInt(data.data["elevatorUpdate"].id)) as elevatorState;
-            elevator.atFloor = data.data["elevatorUpdate"].atFloor;
-            elevator.elevatorStatus = data.data["elevatorUpdate"].elevator_status;
-            if (data.data["elevatorUpdate"]["primary_elevator_queue"]) { console.warn("Elevator " + elevator.elevatorNumber + " at " + elevator.atFloor + (data.data["elevatorUpdate"]["primary_elevator_queue"]["toFloor"] ? " going to " + data.data["elevatorUpdate"]["primary_elevator_queue"]["toFloor"] : "") + (data.data["elevatorUpdate"]["secondary_elevator_queue"]["toFloor"] ? " then going to " + data.data["elevatorUpdate"]["secondary_elevator_queue"]["toFloor"] : "")); }
-
-            data.data["doorsUpdate"].forEach((door: elevatorDoorState) => {
-              let thisdoor = newState.elevatorDoorState.find(ed => ed.elevatorShaftNumber === door.elevatorShaftNumber && ed.floor === door.floor) as elevatorDoorState;
-              thisdoor.open = door.open;
-              thisdoor.elevatorDirection = door.elevatorDirection;
-              thisdoor.elevatorAtFloor = door.elevatorAtFloor;
-
-            });
-
-            return newState;
-          } else {
-            return data.data as state;
-          }
-        }
-        );
-        break;
-    }
-
-  };
-}
-
-function generateNewKey(): number {
-  return Math.floor(Math.random() * 20000);
-}
-

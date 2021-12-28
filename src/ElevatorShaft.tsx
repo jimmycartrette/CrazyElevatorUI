@@ -1,7 +1,7 @@
 import CSS from 'csstype';
 import './ElevatorShaft.css';
 import { globals } from "./globals";
-import { elevatorState } from "./App";
+import { elevatorState } from "./ElevatorDirection";
 
 
 const ElevatorShaft = (state: elevatorState) => {

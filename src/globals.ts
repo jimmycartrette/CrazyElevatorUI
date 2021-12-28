@@ -4,4 +4,5 @@ const globals = {
 }
 enum DoorsStatus { OPEN = 1, CLOSED }
 
+
 export { DoorsStatus, globals };

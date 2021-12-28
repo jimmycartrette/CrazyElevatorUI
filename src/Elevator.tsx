@@ -1,5 +1,5 @@
 import CSS from 'csstype';
-import { elevatorState } from "./App";
+import { elevatorState } from "./ElevatorDirection";
 import './Elevator.css';
 import { globals } from './globals';
 

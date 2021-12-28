@@ -1,7 +1,7 @@
 import './ElevatorDoors.css';
 import { globals } from './globals';
 import CSS from 'csstype';
-import { ElevatorDirection, elevatorDoorState } from "./App";
+import { ElevatorDirection, elevatorDoorState } from "./ElevatorDirection";
 
 
 type Props = {
