@@ -9,7 +9,7 @@ import { globals } from './globals';
 import { wrapGrid } from 'animate-css-grid';
 import React from 'react';
 import { state, ElevatorStatus, ElevatorDirection, MOVE_DELAY } from './ElevatorDirection';
-import callElevator from './services/callElevator';
+import { callElevator } from './services/callElevator';
 import ConnectToWebPubSub from './services/ConnectToWebPubSub';
 import { GetInitialElevatorState } from './services/GetInitialElevatorState';
 

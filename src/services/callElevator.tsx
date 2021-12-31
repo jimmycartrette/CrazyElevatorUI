@@ -2,7 +2,7 @@ import React from 'react';
 import { state, ElevatorStatus, ElevatorDirection } from '../ElevatorDirection';
 import { moveFloor } from "./moveFloor";
 
-export default function callElevator(state: state, callingFloor: number, callingElevatorShaft: number, stateUpdateFunction: React.Dispatch<React.SetStateAction<state>>): void {
+export function callElevator(state: state, callingFloor: number, callingElevatorShaft: number, stateUpdateFunction: React.Dispatch<React.SetStateAction<state>>): void {
 
   let newState = Object.assign({}, state);
   let elevator = newState.elevatorState.find(es => es.elevatorNumber === callingElevatorShaft);
