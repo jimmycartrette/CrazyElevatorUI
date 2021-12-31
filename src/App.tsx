@@ -8,8 +8,10 @@ import Floor from './Floor';
 import { globals } from './globals';
 import { wrapGrid } from 'animate-css-grid';
 import React from 'react';
-import { addMessageProcessor } from './addMessageProcessor';
-import { state, ElevatorStatus, ElevatorDirection, elevatorDoorState, elevatorState, MOVE_DELAY } from './ElevatorDirection';
+import { state, ElevatorStatus, ElevatorDirection, MOVE_DELAY } from './ElevatorDirection';
+import callElevator from './services/callElevator';
+import ConnectToWebPubSub from './services/ConnectToWebPubSub';
+import { GetInitialElevatorState } from './services/GetInitialElevatorState';
 
 let numberOfElevatorDoors = globals.NUMBER_OF_ELEVATORS * globals.NUMBER_OF_FLOORS;
 let initialState: state = {
@@ -22,9 +24,7 @@ let initialState: state = {
   }),
   elevatorDoorState: Array.from({ length: (numberOfElevatorDoors) }, (_x, i) => {
     return {
-      // elevatorShaftNumber: i % globals.NUMBER_OF_ELEVATORS + 1,
       elevatorShaftNumber: Math.floor(i / globals.NUMBER_OF_FLOORS) + 1,
-      // floor: globals.NUMBER_OF_FLOORS - Math.floor(i / globals.NUMBER_OF_ELEVATORS),
       floor: i % globals.NUMBER_OF_FLOORS + 1,
       elevatorAtFloor: 1,
       elevatorDirection: ElevatorDirection.NONE,
@@ -32,61 +32,12 @@ let initialState: state = {
     }
   }),
 };
-console.log(initialState.elevatorDoorState);
-const callElevator = (state: state, callingFloor: number, callingElevatorShaft: number, stateUpdateFunction: React.Dispatch<React.SetStateAction<state>>) => {
 
-  let newState = Object.assign({}, state);
-  let elevator = newState.elevatorState.find(es => es.elevatorNumber === callingElevatorShaft);
-  if (callingFloor === elevator?.atFloor && elevator?.elevatorStatus === ElevatorStatus.ATFLOOR) {
-    return;
-  }
-
-  if (elevator && elevator.elevatorStatus === ElevatorStatus.ATFLOOR) {
-    let otherElevatorsInShaft = newState.elevatorDoorState.filter(ds => ds.elevatorShaftNumber === callingElevatorShaft && ds.floor !== callingFloor);
-    otherElevatorsInShaft.forEach(a => a.open = false);
-    elevator.fromFloor = elevator.atFloor;
-    elevator.toFloor = callingFloor;
-    elevator.direction = elevator.fromFloor as number < elevator.toFloor ? ElevatorDirection.UP : ElevatorDirection.DOWN;
-    stateUpdateFunction(newState);
-    moveFloor(stateUpdateFunction, newState, callingFloor, callingElevatorShaft);
-  }
+interface ContextState {
 }
-function moveFloor(stateUpdateFunction: React.Dispatch<React.SetStateAction<state>>, state: state, callingFloor: number, callingElevatorShaft: number) {
-  let newState = Object.assign({}, state);
-  let callingdoor = newState.elevatorDoorState.find(ds => ds.floor === callingFloor
-    && ds.elevatorShaftNumber === callingElevatorShaft) as elevatorDoorState;
-  let elevator = newState.elevatorState.find(es => es.elevatorNumber === callingElevatorShaft) as elevatorState;
-  let floorDifference = Math.abs(callingFloor - (elevator?.atFloor ?? 1));
+let contextState: ContextState = {};
+const Context = React.createContext<ContextState | null>(null);
 
-  if (floorDifference === 0 && callingdoor) {
-    elevator.direction = undefined;
-    elevator.fromFloor = undefined;
-    elevator.atFloor = elevator.toFloor;
-    elevator.toFloor = undefined;
-    elevator.elevatorStatus = ElevatorStatus.ATFLOOR;
-    stateUpdateFunction(newState);
-    setTimeout(() => {
-      if (callingdoor) {
-        callingdoor.open = true;
-        stateUpdateFunction(Object.assign({}, newState));
-        setTimeout(() => {
-          if (callingdoor) {
-            callingdoor.open = false;
-            stateUpdateFunction(Object.assign({}, newState));
-          }
-        }, MOVE_DELAY);
-      }
-    }, MOVE_DELAY);
-    return;
-  }
-
-  setTimeout(() => {
-    elevator.atFloor = elevator.atFloor as number + (elevator.direction === ElevatorDirection.UP ? 1 : -1);
-    elevator.elevatorStatus = ElevatorStatus.MOVING;
-    stateUpdateFunction(Object.assign({}, newState));
-    moveFloor(stateUpdateFunction, newState, callingFloor, callingElevatorShaft);
-  }, MOVE_DELAY);
-}
 export interface webPubSubConnection {
   connectionString: string | null,
   hubName: string,
@@ -119,36 +70,10 @@ const BaseGrid = () => {
   const [forceGridAnimation, setForceGridAnimation] = useState(initforceGridAnimation);
   const [, setWpsConnection] = useState(initialWPSConnection);
   useEffect(() => {
-    fetch("https://crazyelevatorwebpubsubtokengenerator.azurewebsites.net/api/elevatorWebPubSubTokenGenerator?id=jimmy")
-      .then(res => res.json())
-      .then(
-        (result) => {
-
-          const serviceClient = new WebSocket(result.url, 'json.webpubsub.azure.v1');
-          addMessageProcessor(serviceClient, setState);
-          setWpsConnection(preconn => {
-            return { ...preconn, connectionString: result.url, connection: serviceClient }
-          });
-        },
-        // Note: it's important to handle errors here
-        // instead of a catch() block so that we don't swallow
-        // exceptions from actual bugs in components.
-        (error) => {
-          console.log("something broke");
-        }
-      )
+    ConnectToWebPubSub(setState, setWpsConnection);
   }, []);
   useEffect(() => {
-    fetch("https://crazyelevatorcurrentstate.azurewebsites.net/api/GoCurrentElevatorState")
-      .then(res => res.json())
-      .then(
-        (result) => {
-          setState(result);
-        },
-        (error) => {
-          console.log("something broke");
-        }
-      )
+    GetInitialElevatorState(setState);
   }, []);
   const gridSetup: CSS.Properties = {
     gridTemplateColumns: '2fr repeat(' + (globals.NUMBER_OF_ELEVATORS - 1).toString() + ', 2fr 1fr) 2fr 2fr',
@@ -198,9 +123,16 @@ const BaseGrid = () => {
 
 
 const App = () => {
+  useEffect(() => {
+    document.title = "CraAzY ELevAtoR";
+  }
+    , [])
   return (
-    <><BaseGrid></BaseGrid></>
+    <Context.Provider value={contextState}><BaseGrid></BaseGrid></Context.Provider>
+
   );
 }
 
 export default App;
+
+
