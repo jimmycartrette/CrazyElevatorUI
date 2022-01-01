@@ -10,7 +10,6 @@ import { wrapGrid } from 'animate-css-grid';
 import React from 'react';
 import { state, ElevatorStatus, ElevatorDirection, MOVE_DELAY } from './ElevatorDirection';
 import { callElevator } from './services/callElevator';
-import ConnectToWebPubSub from './services/ConnectToWebPubSub';
 import { GetInitialElevatorState } from './services/GetInitialElevatorState';
 
 let numberOfElevatorDoors = globals.NUMBER_OF_ELEVATORS * globals.NUMBER_OF_FLOORS;
@@ -70,10 +69,10 @@ const BaseGrid = () => {
   const [forceGridAnimation, setForceGridAnimation] = useState(initforceGridAnimation);
   const [, setWpsConnection] = useState(initialWPSConnection);
   useEffect(() => {
-    ConnectToWebPubSub(setState, setWpsConnection);
+
   }, []);
   useEffect(() => {
-    GetInitialElevatorState(setState);
+    GetInitialElevatorState(setState, setWpsConnection);
   }, []);
   const gridSetup: CSS.Properties = {
     gridTemplateColumns: '2fr repeat(' + (globals.NUMBER_OF_ELEVATORS - 1).toString() + ', 2fr 1fr) 2fr 2fr',

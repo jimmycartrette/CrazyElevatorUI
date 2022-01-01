@@ -19,13 +19,13 @@ export function addMessageProcessor(serviceClient: WebSocket, setState: React.Di
                         let elevatorUpdate = (data as partialStateUpdate).elevatorUpdate;
                         let doorsUpdate = (data as partialStateUpdate).doorsUpdate;
                         let newState = Object.assign({}, existing) as state;
-                        let elevator = newState.elevatorState.find(es => es.elevatorNumber === elevatorUpdate.elevatorNumber);
+                        let elevatorIndex = newState.elevatorState.findIndex(es => es.elevatorNumber === elevatorUpdate.elevatorNumber);
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                        elevator = elevatorUpdate;
+                        newState.elevatorState[elevatorIndex] = elevatorUpdate;
                         doorsUpdate.forEach((newDoor: elevatorDoorState) => {
-                            let existingDoor = newState.elevatorDoorState.find(ed => ed.elevatorShaftNumber === newDoor.elevatorShaftNumber && ed.floor === newDoor.floor) as elevatorDoorState;
+                            let existingDoorIndex = newState.elevatorDoorState.findIndex(ed => ed.elevatorShaftNumber === newDoor.elevatorShaftNumber && ed.floor === newDoor.floor);
                             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                            existingDoor = newDoor;
+                            newState.elevatorDoorState[existingDoorIndex] = newDoor;
                         });
                         return newState;
                     } else {
